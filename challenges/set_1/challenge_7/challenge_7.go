@@ -38,7 +38,7 @@ func main() {
 	//first byte needs trimmed off for some reason
 	ciphertextBytes = ciphertextBytes[1:]
 
-	decryptedBytes, err := ecb.AesEcbDecrypt(ciphertextBytes, keyBytes)
+	decryptedBytes, err := ecb.Decrypt(ciphertextBytes, keyBytes)
 	check(err)
 
 	fmt.Println(string(decryptedBytes))

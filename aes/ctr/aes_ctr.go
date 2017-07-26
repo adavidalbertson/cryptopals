@@ -66,3 +66,24 @@ func (cipher *AesCtrCipher) Encrypt(plaintext []byte) (ciphertext []byte, err er
 func (cipher *AesCtrCipher) Decrypt(ciphertext []byte) (plaintext []byte, err error) {
 	return cipher.Encrypt(ciphertext)
 }
+
+func (cipher *AesCtrCipher) Edit(ciphertext, newText []byte, offset int) (newCiphertext []byte, err error) {
+	tempCipher, err := NewAesCtrCipher(cipher.key, cipher.nonce)
+	if err != nil {
+		return
+	}
+	tempCipher.counter = uint64(offset)
+	insert, err := tempCipher.Encrypt(newText)
+	if err != nil {
+		return
+	}
+
+	blockSize := 16
+	oldCiphertext := make([]byte, len(ciphertext))
+	copy(oldCiphertext, ciphertext)
+
+	newCiphertext = append(oldCiphertext[:offset * blockSize], insert...)
+	newCiphertext = append(newCiphertext, ciphertext[(offset * blockSize) + len(insert):]...)
+
+	return newCiphertext, nil
+}

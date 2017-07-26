@@ -3,7 +3,6 @@ package xor
 import (
 	"encoding/hex"
 	"errors"
-	// "fmt"
 )
 
 // FixedXor takes two hex strings and produces their XOR'ed output.
