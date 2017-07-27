@@ -67,23 +67,35 @@ func (cipher *AesCtrCipher) Decrypt(ciphertext []byte) (plaintext []byte, err er
 	return cipher.Encrypt(ciphertext)
 }
 
+// Edit a ciphertext by seeking to the desired spot, initing a cipher with the
+// appropriate counter value, and overwrite that portion of ciphertext with the
+// encrypted newText. Replacement text starts at the beginning of a block.
+// Cryptopals Set 4, Challenge 25
+// https://cryptopals.com/sets/4/challenges/25
 func (cipher *AesCtrCipher) Edit(ciphertext, newText []byte, offset int) (newCiphertext []byte, err error) {
+	blockSize := 16
+	if (offset * blockSize) >= len(ciphertext) {
+		return ciphertext, fmt.Errorf("Offset (%d) exceeds ciphertext length (%d).", offset * blockSize, len(ciphertext))
+	}
+
 	tempCipher, err := NewAesCtrCipher(cipher.key, cipher.nonce)
 	if err != nil {
 		return
 	}
 	tempCipher.counter = uint64(offset)
+
 	insert, err := tempCipher.Encrypt(newText)
 	if err != nil {
 		return
 	}
 
-	blockSize := 16
 	oldCiphertext := make([]byte, len(ciphertext))
 	copy(oldCiphertext, ciphertext)
 
 	newCiphertext = append(oldCiphertext[:offset * blockSize], insert...)
-	newCiphertext = append(newCiphertext, ciphertext[(offset * blockSize) + len(insert):]...)
+	if (offset * blockSize) + len(insert) < len(ciphertext) {
+		newCiphertext = append(newCiphertext, ciphertext[(offset * blockSize) + len(insert):]...)
+	}
 
 	return newCiphertext, nil
 }

@@ -1,10 +1,12 @@
+// Driver program for Cryptopals Set 4, challenge 25
+// https://cryptopals.com/sets/1/challenges/1
 package main
 
 import (
     "bufio"
     "fmt"
     "github.com/adavidalbertson/cryptopals/aes/ctr"
-    // "github.com/adavidalbertson/cryptopals/attacks"
+    "github.com/adavidalbertson/cryptopals/attacks"
     "github.com/adavidalbertson/cryptopals/random"
     "os"
 )
@@ -24,7 +26,7 @@ func main() {
 	read := bufio.NewScanner(file)
 	plaintextBytes := make([]byte, 1)
 	for read.Scan() {
-		lineBytes := []byte(read.Text())
+		lineBytes := []byte(read.Text() + "\n")
 
 		plaintextBytes = append(plaintextBytes, lineBytes...)
 	}
@@ -41,4 +43,11 @@ func main() {
 
     fmt.Println(ciphertextBytes[:32])
     fmt.Println(newCiphertext[:32])
+
+    fmt.Println("=============================================================")
+
+    recovered, err := attacks.BreakCtrEdit(cipher, ciphertextBytes)
+    check(err)
+
+    fmt.Println(string(recovered))
 }
