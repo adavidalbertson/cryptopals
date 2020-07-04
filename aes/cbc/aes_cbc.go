@@ -32,7 +32,7 @@ func Encrypt(plaintextBytes, keyBytes, iv []byte) (ciphertextBytes []byte, err e
 	ciphertextBytes = make([]byte, len(plaintextBytes))
 	curBlock := iv
 	for len(plaintextBytes) > 0 {
-		diff, err := xor.XOR(plaintextBytes[:blockSize], curBlock)
+		diff, err := xor.Xor(plaintextBytes[:blockSize], curBlock)
 		if err != nil {
 			return make([]byte, 0), err
 		}
@@ -76,7 +76,7 @@ func Decrypt(ciphertextBytes, keyBytes, iv []byte) (plaintextBytes []byte, err e
 			return make([]byte, 0), err
 		}
 
-		curBlock, err = xor.XOR(curBlock, prevBlock)
+		curBlock, err = xor.Xor(curBlock, prevBlock)
 		if err != nil {
 			return make([]byte, 0), err
 		}

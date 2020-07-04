@@ -36,7 +36,7 @@ func main() {
 	for i, plaintext := range plaintexts {
 		cipher, err := ctr.NewAesCtrCipher(key, nil)
 		check(err)
-        ciphertexts[i], err = cipher.Encrypt(plaintext)
+		ciphertexts[i], err = cipher.Encrypt(plaintext)
 		check(err)
 	}
 
@@ -51,17 +51,17 @@ func main() {
 
 	keyStream := make([]byte, maxLength)
 	for i := range b {
-        // fmt.Println(len(b[i]))
+		// fmt.Println(len(b[i]))
 		_, keyStream[i], _ = attacks.BreakSingleCharacterXor(b[i])
 	}
 
 	for _, c := range ciphertexts {
 		var decrypted []byte
 		if len(c) < maxLength {
-			decrypted, err = xor.XOR(c, keyStream[:len(c)])
+			decrypted, err = xor.Xor(c, keyStream[:len(c)])
 			check(err)
 		} else {
-			decrypted, _ = xor.XOR(c, keyStream)
+			decrypted, _ = xor.Xor(c, keyStream)
 			check(err)
 		}
 		fmt.Println(string(decrypted))

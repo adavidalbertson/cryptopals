@@ -166,7 +166,7 @@ func (twister *Twister) encryptStream(plaintext []byte) []byte {
 	}
 
 	keyStream = keyStream[:len(plaintext)]
-	ciphertext, _ = xor.XOR(plaintext, keyStream)
+	ciphertext, _ = xor.Xor(plaintext, keyStream)
 
 	return ciphertext
 }

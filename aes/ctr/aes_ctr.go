@@ -55,7 +55,7 @@ func (cipher *AesCtrCipher) Encrypt(plaintext []byte) (ciphertext []byte, err er
 	}
 
 	keystream = keystream[:len(plaintext)]
-	ciphertext, err = xor.XOR(plaintext, keystream)
+	ciphertext, err = xor.Xor(plaintext, keystream)
 
 	return
 }
@@ -75,7 +75,7 @@ func (cipher *AesCtrCipher) Decrypt(ciphertext []byte) (plaintext []byte, err er
 func (cipher *AesCtrCipher) Edit(ciphertext, newText []byte, offset int) (newCiphertext []byte, err error) {
 	blockSize := 16
 	if (offset * blockSize) >= len(ciphertext) {
-		return ciphertext, fmt.Errorf("Offset (%d) exceeds ciphertext length (%d).", offset * blockSize, len(ciphertext))
+		return ciphertext, fmt.Errorf("Offset (%d) exceeds ciphertext length (%d).", offset*blockSize, len(ciphertext))
 	}
 
 	tempCipher, err := NewAesCtrCipher(cipher.key, cipher.nonce)
@@ -92,9 +92,9 @@ func (cipher *AesCtrCipher) Edit(ciphertext, newText []byte, offset int) (newCip
 	oldCiphertext := make([]byte, len(ciphertext))
 	copy(oldCiphertext, ciphertext)
 
-	newCiphertext = append(oldCiphertext[:offset * blockSize], insert...)
-	if (offset * blockSize) + len(insert) < len(ciphertext) {
-		newCiphertext = append(newCiphertext, ciphertext[(offset * blockSize) + len(insert):]...)
+	newCiphertext = append(oldCiphertext[:offset*blockSize], insert...)
+	if (offset*blockSize)+len(insert) < len(ciphertext) {
+		newCiphertext = append(newCiphertext, ciphertext[(offset*blockSize)+len(insert):]...)
 	}
 
 	return newCiphertext, nil

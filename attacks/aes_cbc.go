@@ -71,11 +71,11 @@ func PaddingOracleAttack(oracle cbc.PaddingOracle) ([]byte, error) {
 				pad[j] = paddingByte
 			}
 
-			alteredBlock, err := xor.XOR(alteredBlock, pad)
+			alteredBlock, err := xor.Xor(alteredBlock, pad)
 			if err != nil {
 				return nil, err
 			}
-			alteredBlock, err = xor.XOR(alteredBlock, plaintext[block+blockSize:block+2*blockSize])
+			alteredBlock, err = xor.Xor(alteredBlock, plaintext[block+blockSize:block+2*blockSize])
 			if err != nil {
 				return nil, err
 			}

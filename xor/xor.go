@@ -41,7 +41,7 @@ func matchByteSliceLengths(a, b []byte) (aPadded, bPadded []byte) {
 	return aPadded, bPadded
 }
 
-func padByteSlice(b []byte, paddedLength int) []byte {
+func padByteSlice(b []byte, paddedLength int) (paddedBytes []byte) {
 	if paddedLength <= len(b) {
 		return b
 	}
@@ -103,10 +103,10 @@ func VigenereXorBytes(bytesIn, key []byte) (bytesOut []byte) {
 	return bytesOut
 }
 
-// Xor produces the XOR'ed output of two byte slices.
+// Xor produces the Xor'ed output of two byte slices.
 // utility function for Cryptopals Set 2, Challenge 10
 // https://cryptopals.com/sets/2/challenges/10
-func XOR(a, b []byte) (outBytes []byte, err error) {
+func Xor(a, b []byte) (outBytes []byte, err error) {
 	if len(a) != len(b) {
 		err = errors.New("XOR inputs are not the same length")
 	}
