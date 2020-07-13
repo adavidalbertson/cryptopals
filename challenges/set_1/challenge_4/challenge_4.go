@@ -3,12 +3,11 @@
 package main
 
 import (
-	"bufio"
 	"encoding/hex"
 	"fmt"
-	"os"
 
 	"github.com/adavidalbertson/cryptopals/attacks"
+	"github.com/adavidalbertson/cryptopals/fileutils"
 )
 
 func check(e error) {
@@ -18,20 +17,8 @@ func check(e error) {
 }
 
 func main() {
-	file, err := os.Open("input.txt")
-	defer file.Close()
+	ciphertexts, err := fileutils.ByteSlicesFromFile("./input.txt", hex.DecodeString)
 	check(err)
-
-	read := bufio.NewScanner(file)
-
-	ciphertexts := make([][]byte, 0)
-
-	for read.Scan() {
-		ciphertextHex, err := hex.DecodeString(read.Text())
-		check(err)
-
-		ciphertexts = append(ciphertexts, ciphertextHex)
-	}
 
 	results := attacks.DetectSingleCharacterXorByThreshold(100, ciphertexts...)
 

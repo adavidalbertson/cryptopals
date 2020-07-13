@@ -1,14 +1,12 @@
 package attacks
 
 import (
-	"bufio"
 	"encoding/base64"
 	"encoding/hex"
-	"os"
-	"path/filepath"
 	"reflect"
 	"testing"
 
+	"github.com/adavidalbertson/cryptopals/fileutils"
 	"github.com/adavidalbertson/cryptopals/xor"
 )
 
@@ -86,10 +84,13 @@ func TestBreakVigenereXor(t *testing.T) {
 	}
 
 	newTestCaseFromFile := func(name, fname, key string) (tc testCase) {
-
 		tc.name = name
 		tc.wantKey = []byte(key)
-		tc.ciphertext = bytesFromFile(fname, base64.StdEncoding.DecodeString)
+		ciphertext, err := fileutils.BytesFromFile(fname, base64.StdEncoding.DecodeString)
+		if err != nil {
+			panic(err)
+		}
+		tc.ciphertext = ciphertext
 		tc.wantPlaintext = string(xor.VigenereXorBytes(tc.ciphertext, tc.wantKey))
 
 		return
@@ -136,7 +137,11 @@ func TestDetectSingleCharacterXor(t *testing.T) {
 		tc.want.Ciphertext = ciphertexBytes
 		tc.want.Plaintext = []byte(plaintext)
 		tc.want.Key = key
-		tc.args.ciphertexts = byteSlicesFromFile(fname, hex.DecodeString)
+		ciphertexts, err := fileutils.ByteSlicesFromFile(fname, hex.DecodeString)
+		if err != nil {
+			panic(err)
+		}
+		tc.args.ciphertexts = ciphertexts
 
 		return
 	}
@@ -152,40 +157,4 @@ func TestDetectSingleCharacterXor(t *testing.T) {
 			}
 		})
 	}
-}
-
-func bytesFromFile(fname string, decode func(line string) (bytes []byte, err error)) (bytes []byte) {
-	byteSlices := byteSlicesFromFile(fname, decode)
-
-	for _, lineBytes := range byteSlices {
-		bytes = append(bytes, lineBytes...)
-	}
-
-	return
-}
-
-func byteSlicesFromFile(fname string, decode func(line string) ([]byte, error)) (byteSlices [][]byte) {
-	absPath, err := filepath.Abs(fname)
-	if err != nil {
-		panic(err)
-	}
-
-	file, err := os.Open(absPath)
-	defer file.Close()
-	if err != nil {
-		panic(err)
-	}
-
-	read := bufio.NewScanner(file)
-
-	for read.Scan() {
-		lineBytes, err := decode(read.Text())
-		if err != nil {
-			panic(err)
-		}
-
-		byteSlices = append(byteSlices, lineBytes)
-	}
-
-	return
 }
