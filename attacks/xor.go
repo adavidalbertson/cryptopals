@@ -2,15 +2,20 @@ package attacks
 
 import (
 	"encoding/hex"
-	"github.com/adavidalbertson/cryptopals/xor"
 	"math"
 	"runtime"
+	"sort"
+
+	"github.com/adavidalbertson/cryptopals/xor"
 )
 
-type keyScore struct {
-	key   byte
-	score float64
-	text  []byte
+// KeyScore represents an attempted break of a single character xor ciphertext, including
+// said ciphertext, the suspected plaintext and key, and the frequency analysis score
+type KeyScore struct {
+	Ciphertext []byte
+	Plaintext  []byte
+	Key        byte
+	Score      float64
 }
 
 type vigenereKeyFragment struct {
@@ -43,22 +48,28 @@ func BreakSingleCharacterXorHex(ciphertext string) (plaintext string, key byte, 
 // Cryptopals Set 1, Challenge 3
 // https://cryptopals.com/sets/1/challenges/3
 func BreakSingleCharacterXor(ciphertext []byte) (plaintext []byte, key byte, score float64) {
+	best := breakSingleCharacterXorWrapped(ciphertext)
+
+	return best.Plaintext, best.Key, best.Score
+}
+
+func breakSingleCharacterXorWrapped(ciphertext []byte) (ks KeyScore) {
 	cores := runtime.NumCPU()
 	chunkSize := 256 / cores
-	keyScoreChan := make(chan keyScore, cores)
+	keyScoreChan := make(chan KeyScore, cores)
 
 	for i := 0; i < cores; i++ {
-		go func(keyScoreChan chan keyScore, i int) {
-			best := keyScore{key: byte(0), score: math.Inf(1)}
+		go func(keyScoreChan chan KeyScore, i int) {
+			best := KeyScore{Key: byte(0), Score: math.Inf(1)}
 			for j := 0; j < chunkSize; j++ {
 				key := byte(i*chunkSize + j)
 				potentialPlaintext := xor.VigenereXorBytes(ciphertext, []byte{key})
 				score := CharacterFrequencyScore(string(potentialPlaintext))
 
-				if score < math.Inf(1) && math.Abs(score-best.score) < .00001 {
+				if score < math.Inf(1) && math.Abs(score-best.Score) < .00001 {
 					continue
-				} else if score < best.score {
-					best = keyScore{key, score, potentialPlaintext}
+				} else if score < best.Score {
+					best = KeyScore{Key: key, Score: score, Plaintext: potentialPlaintext}
 				}
 			}
 
@@ -69,14 +80,54 @@ func BreakSingleCharacterXor(ciphertext []byte) (plaintext []byte, key byte, sco
 	best := <-keyScoreChan
 	for i := 1; i < cores; i++ {
 		ks := <-keyScoreChan
-		if ks.score < math.Inf(1) && math.Abs(ks.score-best.score) < .00001 {
+		if ks.Score < math.Inf(1) && math.Abs(ks.Score-best.Score) < .00001 {
 			continue
-		} else if ks.score < best.score {
+		} else if ks.Score < best.Score {
 			best = ks
 		}
 	}
 
-	return best.text, best.key, best.score
+	return best
+}
+
+// DetectSingleCharacterXor accepts a range of potential ciphertexts and uses frequency analysis
+// to pick the one most likely to be a ciphertext encrypted using single character xor
+// Cryptopals Set 1, Challenge 4
+// https://cryptopals.com/sets/1/challenges/4
+func DetectSingleCharacterXor(ciphertexts ...[]byte) KeyScore {
+	return singleCharacterXorScores(ciphertexts...)[0]
+}
+
+// DetectSingleCharacterXorTopN is a generalized version of DetectSingleCharacterXor that
+// finds the n most likely ciphertexts
+func DetectSingleCharacterXorTopN(n int, ciphertexts ...[]byte) []KeyScore {
+	return singleCharacterXorScores(ciphertexts...)[:n]
+}
+
+// DetectSingleCharacterXorByThreshold is a generalized version of DetectSingleCharacterXor that
+// finds the ciphertexts whose scores are below the given threshold
+func DetectSingleCharacterXorByThreshold(threshold float64, ciphertexts ...[]byte) (scores []KeyScore) {
+	candidates := singleCharacterXorScores(ciphertexts...)
+	lastIndex := 0
+	for i, candidate := range candidates {
+		if candidate.Score > threshold {
+			lastIndex = i
+			break
+		}
+	}
+
+	return candidates[:lastIndex]
+}
+
+func singleCharacterXorScores(ciphertexts ...[]byte) (scores []KeyScore) {
+	for _, ciphertext := range ciphertexts {
+		plaintext, key, score := BreakSingleCharacterXor(ciphertext)
+		scores = append(scores, KeyScore{ciphertext, plaintext, key, score})
+	}
+
+	sort.Slice(scores, func(i, j int) bool { return scores[i].Score < scores[j].Score })
+
+	return scores
 }
 
 // BreakVigenereXor uses frequency analysis to break Vigenere XOR cipher.

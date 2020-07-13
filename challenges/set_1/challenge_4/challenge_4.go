@@ -4,10 +4,11 @@ package main
 
 import (
 	"bufio"
+	"encoding/hex"
 	"fmt"
-	"github.com/adavidalbertson/cryptopals/attacks"
-	"math"
 	"os"
+
+	"github.com/adavidalbertson/cryptopals/attacks"
 )
 
 func check(e error) {
@@ -23,25 +24,26 @@ func main() {
 
 	read := bufio.NewScanner(file)
 
-	bestCiphertextLine := ""
-	bestLine := ""
-	bestKey := byte(0)
-	bestScore := math.Inf(1)
+	ciphertexts := make([][]byte, 0)
 
 	for read.Scan() {
-		ciphertextLine := read.Text()
-		lineBroken, key, score, err := attacks.BreakSingleCharacterXorHex(ciphertextLine)
+		ciphertextHex, err := hex.DecodeString(read.Text())
 		check(err)
 
-		if score < bestScore {
-			bestCiphertextLine = ciphertextLine
-			bestLine = lineBroken
-			bestKey = key
-			bestScore = score
-		}
+		ciphertexts = append(ciphertexts, ciphertextHex)
 	}
 
-	fmt.Println(bestCiphertextLine)
-	fmt.Println(bestLine)
-	fmt.Println(bestKey, bestScore)
+	results := attacks.DetectSingleCharacterXorByThreshold(100, ciphertexts...)
+
+	for i := range results {
+		ciphertextLine := hex.EncodeToString(results[i].Ciphertext)
+		line := string(results[i].Plaintext)
+		key := results[i].Key
+		score := results[i].Score
+
+		fmt.Println(ciphertextLine)
+		fmt.Println(line)
+		fmt.Println(key, score)
+		fmt.Println()
+	}
 }

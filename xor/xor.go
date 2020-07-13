@@ -33,37 +33,30 @@ func FixedXor(a, b string) (hexResult string, hexError error) {
 	return
 }
 
-func matchByteSliceLengths(a, b []byte) (aPadded, bPadded []byte) {
-	paddedLength := intMax([]int{len(a), len(b)})
-	aPadded = padByteSlice(a, paddedLength)
-	bPadded = padByteSlice(b, paddedLength)
-
-	return aPadded, bPadded
-}
-
-func padByteSlice(b []byte, paddedLength int) (paddedBytes []byte) {
-	if paddedLength <= len(b) {
-		return b
+func matchByteSliceLengths(a, b []byte) ([]byte, []byte) {
+	if len(a) == len(b) {
+		return a, b
 	}
 
-	padding := make([]byte, paddedLength-len(b))
-	return append(padding, b...)
-}
+	swap := len(a) < len(b)
 
-// have to write my own integer max func like an animal
-func intMax(ints []int) int {
-	max := ints[0]
-	for i := range ints {
-		if ints[i] > max {
-			max = ints[i]
-		}
+	if swap {
+		b, a = a, b
 	}
 
-	return max
+	padding := make([]byte, len(a)-len(b))
+	b = append(padding, b...)
+
+	if swap {
+		b, a = a, b
+	}
+
+	return a, b
 }
 
 // VigenereXorEncrypt encrypts plaintext using the key.
-// Wrapper function for VigenereXorBytes that uses strings for the inputs.
+// Wrapper function for VigenereXorBytes that accepts arbitrary strings for the inputs
+// and returns the result as a hex encoded string
 // Cryptopals Set 1, Challenge 5
 // https://cryptopals.com/sets/1/challenges/5
 func VigenereXorEncrypt(plaintext, key string) string {
@@ -74,7 +67,8 @@ func VigenereXorEncrypt(plaintext, key string) string {
 }
 
 // VigenereXorDecrypt decrypts ciphertext using the key.
-// Wrapper function for VigenereXorBytes that uses strings for the inputs.
+// Wrapper function for VigenereXorBytes that accepts a hex encoded string for the ciphertext
+// and an arbitrary string for the key, and returns the plaitext as a string
 // Cryptopals Set 1, Challenge 5
 // https://cryptopals.com/sets/1/challenges/5
 func VigenereXorDecrypt(ciphertext, key string) (plaintext string, hexError error) {
@@ -109,6 +103,7 @@ func VigenereXorBytes(bytesIn, key []byte) (bytesOut []byte) {
 func Xor(a, b []byte) (outBytes []byte, err error) {
 	if len(a) != len(b) {
 		err = errors.New("XOR inputs are not the same length")
+		a, b = matchByteSliceLengths(a, b)
 	}
 
 	outBytes = make([]byte, len(a))
