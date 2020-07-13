@@ -6,8 +6,9 @@ import (
 	"bufio"
 	"encoding/base64"
 	"fmt"
-	"github.com/adavidalbertson/cryptopals/attacks"
 	"os"
+
+	"github.com/adavidalbertson/cryptopals/attacks"
 )
 
 func check(e error) {
@@ -22,7 +23,7 @@ func main() {
 
 	read := bufio.NewScanner(file)
 
-	ciphertextBytes := make([]byte, 1)
+	ciphertextBytes := make([]byte, 0)
 
 	for read.Scan() {
 		line := read.Text()
@@ -32,7 +33,9 @@ func main() {
 		ciphertextBytes = append(ciphertextBytes, lineBytes...)
 	}
 
-	decrypted, _ := attacks.BreakVigenereXor(ciphertextBytes);
+	decrypted, key := attacks.BreakVigenereXor(ciphertextBytes)
 
-	fmt.Println(decrypted);
+	fmt.Println(decrypted)
+	fmt.Println("============================================")
+	fmt.Println(string(key))
 }

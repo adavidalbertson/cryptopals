@@ -2,6 +2,7 @@ package attacks
 
 import (
 	"bufio"
+	"encoding/base64"
 	"encoding/hex"
 	"os"
 	"path/filepath"
@@ -79,13 +80,23 @@ func TestBreakVigenereXor(t *testing.T) {
 		tc.name = name
 		tc.wantKey = []byte(key)
 		tc.wantPlaintext = plaintext
-
 		tc.ciphertext = xor.VigenereXorBytes([]byte(plaintext), tc.wantKey)
 
 		return
 	}
 
+	newTestCaseFromFile := func(name, fname, key string) (tc testCase) {
+
+		tc.name = name
+		tc.wantKey = []byte(key)
+		tc.ciphertext = bytesFromFile(fname, base64.StdEncoding.DecodeString)
+		tc.wantPlaintext = string(xor.VigenereXorBytes(tc.ciphertext, tc.wantKey))
+
+		return
+	}
+
 	tests := []testCase{
+		newTestCaseFromFile("challenge_6", "../challenges/set_1/challenge_6/input.txt", "Terminator X: Bring the noise"),
 		newTestCase("Breakfast", "bfast", "I like to wake up early making bacon and eggs, yeah I'm out of coffee beans so I'm drinking the dregs. And I'm a yolk man, I like my eggs porous. Watch me get fatter than a preggo stegosaurus"),
 		newTestCase("Time", "bunny", "Yo, this beat's old school like Acheulian hand axes, sound like we slipped a few xanaxes at band practice. We got the game plan encompassing all factors, we stay fly like a pair ot pterodactyls"),
 		newTestCase("True", "posse", "I'm a Blackwater mercenary, money on my mind, my head's a secret cavern that no human can define. The last digit of pi, can't die, cause I defy all laws of physics, man, and nature that the rest of you live by"),
@@ -98,7 +109,7 @@ func TestBreakVigenereXor(t *testing.T) {
 				t.Errorf("BreakVigenereXor() gotPlaintext = %v, want %v", gotPlaintext, tt.wantPlaintext)
 			}
 			if !reflect.DeepEqual(gotKey, tt.wantKey) {
-				t.Errorf("BreakVigenereXor() gotKey = %v, want %v", gotKey, tt.wantKey)
+				t.Errorf("BreakVigenereXor() gotKey = %v, want %v", string(gotKey), string(tt.wantKey))
 			}
 		})
 	}
@@ -125,32 +136,7 @@ func TestDetectSingleCharacterXor(t *testing.T) {
 		tc.want.Ciphertext = ciphertexBytes
 		tc.want.Plaintext = []byte(plaintext)
 		tc.want.Key = key
-
-		absPath, err := filepath.Abs(fname)
-		if err != nil {
-			panic(err)
-		}
-
-		file, err := os.Open(absPath)
-		defer file.Close()
-		if err != nil {
-			panic(err)
-		}
-
-		read := bufio.NewScanner(file)
-
-		ciphertexts := make([][]byte, 0)
-
-		for read.Scan() {
-			ciphertextHex, err := hex.DecodeString(read.Text())
-			if err != nil {
-				panic(err)
-			}
-
-			ciphertexts = append(ciphertexts, ciphertextHex)
-		}
-
-		tc.args.ciphertexts = ciphertexts
+		tc.args.ciphertexts = byteSlicesFromFile(fname, hex.DecodeString)
 
 		return
 	}
@@ -166,4 +152,40 @@ func TestDetectSingleCharacterXor(t *testing.T) {
 			}
 		})
 	}
+}
+
+func bytesFromFile(fname string, decode func(line string) (bytes []byte, err error)) (bytes []byte) {
+	byteSlices := byteSlicesFromFile(fname, decode)
+
+	for _, lineBytes := range byteSlices {
+		bytes = append(bytes, lineBytes...)
+	}
+
+	return
+}
+
+func byteSlicesFromFile(fname string, decode func(line string) ([]byte, error)) (byteSlices [][]byte) {
+	absPath, err := filepath.Abs(fname)
+	if err != nil {
+		panic(err)
+	}
+
+	file, err := os.Open(absPath)
+	defer file.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	read := bufio.NewScanner(file)
+
+	for read.Scan() {
+		lineBytes, err := decode(read.Text())
+		if err != nil {
+			panic(err)
+		}
+
+		byteSlices = append(byteSlices, lineBytes)
+	}
+
+	return
 }
