@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/adavidalbertson/cryptopals/padding"
 )
 
@@ -12,7 +13,8 @@ func check(err error) {
 }
 
 func main() {
-	padded := padding.Pkcs7([]byte("YELLOW SUB"), 16)
+	padded, err := padding.Pkcs7([]byte("YELLOW SUB"), 16)
+	check(err)
 	unpadded, err := padding.Pkcs7Unpad(padded)
 	check(err)
 

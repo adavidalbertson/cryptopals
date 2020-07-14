@@ -2,10 +2,10 @@ package cbc
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/adavidalbertson/cryptopals/padding"
 	"github.com/adavidalbertson/cryptopals/random"
-	// "net/url"
-	"strings"
 )
 
 // AesCbcOracle contains a prefix, suffix, key, and iv for encryption.
@@ -33,18 +33,21 @@ func NewAesCbcOracle() AesCbcOracle {
 // plaintext, pads, and encrypts with the oracle's key and iv.
 // Cryptopals Set 2, Challenge 16
 // https://cryptopals.com/sets/2/challenges/16
-func (oracle AesCbcOracle) Encrypt(plaintext string) (token []byte, err error) {
+func (oracle AesCbcOracle) Encrypt(plaintext string) (ciphertext []byte, err error) {
 	plaintext = strings.Replace(plaintext, ";", "", -1)
 	plaintext = strings.Replace(plaintext, "=", "", -1)
 	// plaintext = url.QueryEscape(plaintext)
 	fmt.Println(plaintext)
 
 	plaintext = oracle.prefix + plaintext + oracle.suffix
-	plaintextBytes := padding.Pkcs7([]byte(plaintext), 16)
+	plaintextBytes, err := padding.Pkcs7([]byte(plaintext), 16)
+	if err != nil {
+		return
+	}
 
-	ciphertext, err := Encrypt(plaintextBytes, oracle.key, oracle.iv)
+	ciphertext, err = Encrypt(plaintextBytes, oracle.key, oracle.iv)
 
-	return ciphertext, err
+	return
 }
 
 // Decrypt takes an encrypted user token, and returns true if the admin parameter is true.

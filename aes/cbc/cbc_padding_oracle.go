@@ -2,11 +2,11 @@ package cbc
 
 import (
 	"encoding/base64"
-	// "fmt"
+	"math/rand"
+	"time"
+
 	"github.com/adavidalbertson/cryptopals/padding"
 	"github.com/adavidalbertson/cryptopals/random"
-	mrand "math/rand"
-	"time"
 )
 
 // PaddingOracle holds a randomly selected plaintext, key, and iv.
@@ -20,7 +20,7 @@ type PaddingOracle struct {
 // Cryptopals Set 3, Challenge 17
 // https://cryptopals.com/sets/3/challenges/17
 func NewPaddingOracle() PaddingOracle {
-	r := mrand.New(mrand.NewSource(time.Now().UnixNano()))
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	key := random.Bytes(16)
 	iv := random.Bytes(16)
 
@@ -50,10 +50,17 @@ func NewPaddingOracle() PaddingOracle {
 // Returns the ciphertext and iv.
 // Cryptopals Set 3, Challenge 17
 // https://cryptopals.com/sets/3/challenges/17
-func (oracle PaddingOracle) Encrypt() (ciphertext, iv []byte) {
-	ciphertext, _ = Encrypt(padding.Pkcs7(oracle.plaintext, 16), oracle.key, oracle.iv)
+func (oracle PaddingOracle) Encrypt() (ciphertext, iv []byte, err error) {
+	iv = oracle.iv
 
-	return ciphertext, oracle.iv
+	padded, err := padding.Pkcs7(oracle.plaintext, 16)
+	if err != nil {
+		return
+	}
+
+	ciphertext, err = Encrypt(padded, oracle.key, oracle.iv)
+
+	return
 }
 
 // Validate returns true if the plaintext was correctly padded.

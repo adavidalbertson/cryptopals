@@ -3,12 +3,13 @@ package ecb
 import (
 	crand "crypto/rand"
 	"fmt"
-	"github.com/adavidalbertson/cryptopals/padding"
 	mrand "math/rand"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/adavidalbertson/cryptopals/padding"
 )
 
 // UserProfile contains simple user data: email, uid, and role.
@@ -45,7 +46,12 @@ func (pm ProfileMaker) ProfileFor(email string) (token []byte, err error) {
 	profile.uid = 100 + r.Intn(900)
 	profile.role = "user"
 
-	return Encrypt(padding.Pkcs7([]byte(WriteProfileToString(profile)), 16), pm.key)
+	padded, err := padding.Pkcs7([]byte(WriteProfileToString(profile)), 16)
+	if err != nil {
+		return
+	}
+
+	return Encrypt(padded, pm.key)
 }
 
 // DecryptProfile decrypts the user data from a token.

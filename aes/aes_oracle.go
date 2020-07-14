@@ -19,7 +19,7 @@ import (
 // 	key []byte
 // }
 
-// AesOracle takes a plaintext, adds a random prefix and suffix, then encrypts
+// Oracle takes a plaintext, adds a random prefix and suffix, then encrypts
 // it using either ECB or CBC mode at random, using a random 16-byte key.
 // For testing, it prints the mode used.
 // Cryptopals Set 2, Challenge 11
@@ -29,7 +29,10 @@ func Oracle(plaintext []byte) (ciphertext []byte, err error) {
 	key := random.Bytes(16)
 	plaintext = append(random.Bytes(5+r.Intn(6)), plaintext...)
 	plaintext = append(plaintext, random.Bytes(5+r.Intn(6))...)
-	plaintext = padding.Pkcs7(plaintext, 16)
+	plaintext, err = padding.Pkcs7(plaintext, 16)
+	if err != nil {
+		return
+	}
 
 	switch mode := r.Intn(2); mode {
 	case 0:

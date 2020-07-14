@@ -4,7 +4,7 @@ import (
 	"github.com/adavidalbertson/cryptopals/aes/cbc"
 	"github.com/adavidalbertson/cryptopals/padding"
 	"github.com/adavidalbertson/cryptopals/xor"
-	// "net/url"
+
 	"strings"
 )
 
@@ -49,7 +49,11 @@ func flipChars(in string) (s string, indices []int) {
 // https://cryptopals.com/sets/3/challenges/17
 func PaddingOracleAttack(oracle cbc.PaddingOracle) ([]byte, error) {
 	blockSize := 16
-	ciphertext, iv := oracle.Encrypt()
+	ciphertext, iv, err := oracle.Encrypt()
+	if err != nil {
+		return nil, err
+	}
+
 	plaintext := make([]byte, len(ciphertext))
 
 	var left []byte

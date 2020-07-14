@@ -2,10 +2,11 @@ package ecb
 
 import (
 	crand "crypto/rand"
-	"github.com/adavidalbertson/cryptopals/padding"
-	"github.com/adavidalbertson/cryptopals/random"
 	mrand "math/rand"
 	"time"
+
+	"github.com/adavidalbertson/cryptopals/padding"
+	"github.com/adavidalbertson/cryptopals/random"
 )
 
 // EncryptionOracle is an interface containing only an Encrypt function
@@ -41,7 +42,10 @@ func NewAesEcbOracle(suffix []byte, addPrefix bool) (AesEcbOracle, error) {
 func (oracle AesEcbOracle) Encrypt(plaintext []byte) (ciphertext []byte, err error) {
 	plaintext = append(oracle.prefix, plaintext...)
 	plaintext = append(plaintext, oracle.suffix...)
-	plaintext = padding.Pkcs7(plaintext, 16)
+	plaintext, err = padding.Pkcs7(plaintext, 16)
+	if err != nil {
+		return
+	}
 
 	return Encrypt(plaintext, oracle.key)
 }
