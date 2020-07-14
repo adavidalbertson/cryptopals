@@ -1,77 +1,81 @@
 package cbc
 
 import (
-	"crypto/aes"
 	"fmt"
+
 	"github.com/adavidalbertson/cryptopals/aes/ecb"
 	"github.com/adavidalbertson/cryptopals/xor"
 )
+
+func getAndValidateBlockSize(input, key, iv []byte) (blockSize int, err error) {
+	blockSize = len(key)
+	if blockSize != 16 && blockSize != 24 && blockSize != 32 {
+		err = fmt.Errorf("key has length %d, which is not a valid block size for AES", blockSize)
+		return
+	}
+
+	if iv != nil && len(iv) != blockSize {
+		err = fmt.Errorf("Initialization Vector not equal to block length")
+		return
+	}
+	if len(input)%blockSize != 0 {
+		err = fmt.Errorf("len(plaintextBytes) == %d\nNeed a multiple of %d", len(input), blockSize)
+		return
+	}
+
+	return
+}
 
 // Encrypt encrypts bytes using AES in the CBC mode of operation.
 // Uses the ECB mode implemented for Set 1.
 // Cryptopals Set 2, Challenge 10
 // https://cryptopals.com/sets/2/challenges/10
-func Encrypt(plaintextBytes, keyBytes, iv []byte) (ciphertextBytes []byte, err error) {
-	cipher, err := aes.NewCipher(keyBytes)
+func Encrypt(plaintext, key, iv []byte) (ciphertext []byte, err error) {
+	blockSize, err := getAndValidateBlockSize(plaintext, key, iv)
 	if err != nil {
 		return
 	}
 
-	blockSize := cipher.BlockSize()
 	if iv == nil {
 		iv = make([]byte, blockSize)
 	}
 
-	if len(iv) != blockSize {
-		err = fmt.Errorf("Initialization Vector not equal to block length")
-	}
-	if len(plaintextBytes)%blockSize != 0 {
-		err = fmt.Errorf("len(plaintextBytes) == %d\nNeed a multiple of %d", len(plaintextBytes), blockSize)
-	}
-
-	ciphertextBytes = make([]byte, len(plaintextBytes))
+	ciphertext = make([]byte, len(plaintext))
 	curBlock := iv
-	for len(plaintextBytes) > 0 {
-		diff, err := xor.Xor(plaintextBytes[:blockSize], curBlock)
+	for len(plaintext) > 0 {
+		diff, err := xor.Xor(plaintext[:blockSize], curBlock)
 		if err != nil {
 			return make([]byte, 0), err
 		}
 
-		curBlock, err = ecb.Encrypt(diff, keyBytes)
-		plaintextBytes = plaintextBytes[blockSize:]
-		ciphertextBytes = append(ciphertextBytes, curBlock...)
+		curBlock, err = ecb.Encrypt(diff, key)
+		plaintext = plaintext[blockSize:]
+		ciphertext = append(ciphertext, curBlock...)
 	}
 
 	// per openssl, padding is always added, so strip it off
-	ciphertextBytes = ciphertextBytes[len(ciphertextBytes)/2:]
+	ciphertext = ciphertext[len(ciphertext)/2:]
 
-	return ciphertextBytes, err
+	return ciphertext, err
 }
 
 // Decrypt decrypts bytes using AES in the CBC mode of operation.
 // Cryptopals Set 2, Challenge 10
 // https://cryptopals.com/sets/2/challenges/10
-func Decrypt(ciphertextBytes, keyBytes, iv []byte) (plaintextBytes []byte, err error) {
-	cipher, err := aes.NewCipher(keyBytes)
+func Decrypt(ciphertext, key, iv []byte) (plaintext []byte, err error) {
+	blockSize, err := getAndValidateBlockSize(ciphertext, key, iv)
 	if err != nil {
 		return
 	}
 
-	blockSize := cipher.BlockSize()
 	if iv == nil {
 		iv = make([]byte, blockSize)
 	}
-	if len(iv) > blockSize {
-		err = fmt.Errorf("Initialization Vector is longer than block length")
-	}
-	if len(ciphertextBytes)%blockSize != 0 {
-		err = fmt.Errorf("len(ciphertextBytes) == %d\nNeed a multiple of %d", len(ciphertextBytes), blockSize)
-	}
 
-	plaintextBytes = make([]byte, len(ciphertextBytes))
+	plaintext = make([]byte, len(ciphertext))
 	prevBlock := iv
-	for len(ciphertextBytes) > 0 {
-		curBlock, err := ecb.Decrypt(ciphertextBytes[:blockSize], keyBytes)
+	for len(ciphertext) > 0 {
+		curBlock, err := ecb.Decrypt(ciphertext[:blockSize], key)
 		if err != nil {
 			return make([]byte, 0), err
 		}
@@ -81,12 +85,12 @@ func Decrypt(ciphertextBytes, keyBytes, iv []byte) (plaintextBytes []byte, err e
 			return make([]byte, 0), err
 		}
 
-		prevBlock = ciphertextBytes[:blockSize]
-		ciphertextBytes = ciphertextBytes[blockSize:]
-		plaintextBytes = append(plaintextBytes, curBlock...)
+		prevBlock = ciphertext[:blockSize]
+		ciphertext = ciphertext[blockSize:]
+		plaintext = append(plaintext, curBlock...)
 	}
 
-	plaintextBytes = plaintextBytes[len(plaintextBytes)/2:]
+	plaintext = plaintext[len(plaintext)/2:]
 
-	return plaintextBytes, err
+	return plaintext, err
 }

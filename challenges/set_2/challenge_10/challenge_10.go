@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"encoding/base64"
 	"fmt"
+
 	"github.com/adavidalbertson/cryptopals/aes/cbc"
-	"os"
+	"github.com/adavidalbertson/cryptopals/fileutils"
 )
 
 func check(e error) {
@@ -15,27 +15,12 @@ func check(e error) {
 }
 
 func main() {
-	key := "YELLOW SUBMARINE"
-	keyBytes := []byte(key)
+	key := []byte("YELLOW SUBMARINE")
 
-	file, err := os.Open("input.txt")
+	ciphertext, err := fileutils.BytesFromFile("input.txt", base64.StdEncoding.DecodeString)
 	check(err)
 
-	defer file.Close()
-
-	read := bufio.NewScanner(file)
-	ciphertextBytes := make([]byte, 1)
-	for read.Scan() {
-		line := read.Text()
-		lineBytes, err := base64.StdEncoding.DecodeString(line)
-		check(err)
-		ciphertextBytes = append(ciphertextBytes, lineBytes...)
-	}
-
-	//first byte needs trimmed off for some reason
-	ciphertextBytes = ciphertextBytes[1:]
-
-	decryptedBytes, err := cbc.Decrypt(ciphertextBytes, keyBytes, nil)
+	decrypted, err := cbc.Decrypt(ciphertext, key, nil)
 	check(err)
-	fmt.Println(string(decryptedBytes))
+	fmt.Println(string(decrypted))
 }
