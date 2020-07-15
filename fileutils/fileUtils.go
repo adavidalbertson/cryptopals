@@ -6,6 +6,12 @@ import (
 	"path/filepath"
 )
 
+// Identity converts a string directly to a byte slice with no decoding.
+// Used as a stand-in decode arg for fileutil functions
+func Identity(input string) ([]byte, error) {
+	return []byte(input), nil
+}
+
 // BytesFromFile reads bytes from a text file using the given decode function, and returns the contents of
 // the entire file as a single byte slice
 func BytesFromFile(fname string, decode func(line string) (bytes []byte, err error)) (bytes []byte, err error) {

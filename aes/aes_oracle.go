@@ -2,12 +2,13 @@ package aes
 
 import (
 	"fmt"
+	mrand "math/rand"
+	"time"
+
 	"github.com/adavidalbertson/cryptopals/aes/cbc"
 	"github.com/adavidalbertson/cryptopals/aes/ecb"
 	"github.com/adavidalbertson/cryptopals/padding"
 	"github.com/adavidalbertson/cryptopals/random"
-	mrand "math/rand"
-	"time"
 )
 
 // type EncryptionOracle interface {

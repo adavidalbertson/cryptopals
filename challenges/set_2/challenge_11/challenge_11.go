@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
+
 	"github.com/adavidalbertson/cryptopals/aes"
 	"github.com/adavidalbertson/cryptopals/attacks"
-	"os"
+	"github.com/adavidalbertson/cryptopals/fileutils"
 )
 
 func check(e error) {
@@ -15,17 +15,7 @@ func check(e error) {
 }
 
 func main() {
-	file, err := os.Open("input.txt")
-	check(err)
-
-	defer file.Close()
-
-	read := bufio.NewScanner(file)
-	plaintextBytes := make([]byte, 1)
-	for read.Scan() {
-		line := read.Text()
-		plaintextBytes = append(plaintextBytes, []byte(line)...)
-	}
+	plaintextBytes, err := fileutils.BytesFromFile("input.txt", fileutils.Identity)
 
 	ciphertextBytes, err := aes.Oracle(plaintextBytes)
 	check(err)
