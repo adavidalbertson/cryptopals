@@ -2,7 +2,10 @@ package attacks
 
 import (
 	"encoding/base64"
+	"reflect"
 	"testing"
+
+	"github.com/adavidalbertson/cryptopals/aes/ecb"
 )
 
 func TestAesEcbDetect(t *testing.T) {
@@ -53,6 +56,101 @@ func TestAesEcbDetect(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := AesEcbDetect(tt.args.inBytes, tt.args.blockSize); got != tt.want {
 				t.Errorf("AesEcbDetect() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestAesEcbOracleDetectBlockSize(t *testing.T) {
+	type args struct {
+		oracle ecb.AesEcbOracle
+	}
+	type testCase struct {
+		name          string
+		args          args
+		wantBlockSize int
+		wantErr       bool
+	}
+
+	newTestCase := func(name, suffixBase64 string, wantBlockSize int, wantErr bool) (tc testCase) {
+		var err error
+		tc.name = name
+		suffix, err := base64.StdEncoding.DecodeString(suffixBase64)
+		if err != nil {
+			panic(err)
+		}
+
+		tc.args.oracle, err = ecb.NewAesEcbOracle(suffix, false)
+		if err != nil {
+			panic(err)
+		}
+
+		tc.wantBlockSize = wantBlockSize
+		tc.wantErr = wantErr
+
+		return
+	}
+
+	tests := []testCase{
+		newTestCase("challenge_12", "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK", 16, false),
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotBlockSize, err := AesEcbOracleDetectBlockSize(tt.args.oracle)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AesEcbOracleDetectBlockSize() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotBlockSize != tt.wantBlockSize {
+				t.Errorf("AesEcbOracleDetectBlockSize() = %v, want %v", gotBlockSize, tt.wantBlockSize)
+			}
+		})
+	}
+}
+
+func TestAesEcbOracleBreak(t *testing.T) {
+	type args struct {
+		oracle ecb.AesEcbOracle
+	}
+	type testCase struct {
+		name          string
+		args          args
+		wantPlaintext []byte
+		wantErr       bool
+	}
+
+	newTestCase := func(name, suffixBase64 string, wantErr bool) (tc testCase) {
+		var err error
+		tc.name = name
+		suffix, err := base64.StdEncoding.DecodeString(suffixBase64)
+		if err != nil {
+			panic(err)
+		}
+
+		tc.args.oracle, err = ecb.NewAesEcbOracle(suffix, false)
+		if err != nil {
+			panic(err)
+		}
+
+		tc.wantPlaintext = suffix
+		tc.wantErr = wantErr
+
+		return
+	}
+
+	tests := []testCase{
+		newTestCase("challenge_12", "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK", false),
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotPlaintext, err := AesEcbOracleBreak(tt.args.oracle)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AesEcbOracleBreak() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotPlaintext, tt.wantPlaintext) {
+				t.Errorf("AesEcbOracleBreak() = %v, want %v", gotPlaintext, tt.wantPlaintext)
 			}
 		})
 	}
