@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/adavidalbertson/cryptopals/aes/ecb"
 	"github.com/adavidalbertson/cryptopals/attacks"
 )
@@ -15,30 +16,30 @@ func check(err error) {
 func main() {
 	pm := ecb.NewProfileMaker()
 
-    email := "foo@bar.com&role=admin"
-	encryptedProfile, err := pm.ProfileFor(email)
+	email := "foo@bar.com&role=admin"
+	profileToken, err := pm.ProfileFor(email)
 	check(err)
 
-    fmt.Println(email)
+	fmt.Println(email)
 
-	decrypedProfile, err := pm.DecryptProfile(encryptedProfile)
+	decrypedProfile, err := pm.DecryptProfile(profileToken)
 	check(err)
 	fmt.Println(decrypedProfile, "<-- Not that easy")
 
-    fmt.Println()
-    fmt.Println("=============================================================")
-    fmt.Println()
+	fmt.Println()
+	fmt.Println("=============================================================")
+	fmt.Println()
 
-    blockSize, err := attacks.ProfileOracleDetectBlockSize(pm)
-    check(err)
+	blockSize, err := attacks.ProfileOracleDetectBlockSize(pm)
+	check(err)
 
-    fmt.Println("Block size:", blockSize)
+	fmt.Println("Block size:", blockSize)
 
-    adminCiphertext, err := attacks.ProfileSpoofAdmin(pm)
-    check(err)
+	adminCiphertext, err := attacks.ProfileSpoofAdmin(pm)
+	check(err)
 
-    adminProfile, err := pm.DecryptProfile(adminCiphertext)
-    check(err)
+	adminProfile, err := pm.DecryptProfile(adminCiphertext)
+	check(err)
 
-    fmt.Println(adminProfile)
+	fmt.Println(adminProfile)
 }

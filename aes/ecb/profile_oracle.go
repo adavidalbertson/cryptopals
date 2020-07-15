@@ -21,6 +21,21 @@ type UserProfile struct {
 	role  string
 }
 
+// GetEmail exposes the profile's email address
+func (up UserProfile) GetEmail() string {
+	return up.email
+}
+
+// GetUID exposes the profile's email uid
+func (up UserProfile) GetUID() int {
+	return up.uid
+}
+
+// GetRole exposes the profile's email address
+func (up UserProfile) GetRole() string {
+	return up.role
+}
+
 // ProfileMaker maintains a consistent key for encrypting profiles.
 type ProfileMaker struct {
 	key []byte
@@ -38,13 +53,7 @@ func NewProfileMaker() ProfileMaker {
 // Cryptopals Set 2, Challenge 13
 // https://cryptopals.com/sets/2/challenges/13
 func (pm ProfileMaker) ProfileFor(email string) (token []byte, err error) {
-	r := mrand.New(mrand.NewSource(time.Now().UnixNano()))
-	profile := UserProfile{}
-
-	// Don't allow other parameters in the email.
-	profile.email = strings.Replace(strings.Replace(email, "&", "", -1), "=", "", -1)
-	profile.uid = 100 + r.Intn(900)
-	profile.role = "user"
+	profile := pm.profileFor(email)
 
 	padded, err := padding.Pkcs7([]byte(WriteProfileToString(profile)), 16)
 	if err != nil {
@@ -52,6 +61,17 @@ func (pm ProfileMaker) ProfileFor(email string) (token []byte, err error) {
 	}
 
 	return Encrypt(padded, pm.key)
+}
+
+func (pm ProfileMaker) profileFor(email string) (profile UserProfile) {
+	r := mrand.New(mrand.NewSource(time.Now().UnixNano()))
+
+	// Don't allow other parameters in the email.
+	profile.email = strings.Replace(strings.Replace(email, "&", "", -1), "=", "", -1)
+	profile.uid = 100 + r.Intn(900)
+	profile.role = "user"
+
+	return
 }
 
 // DecryptProfile decrypts the user data from a token.
@@ -86,7 +106,7 @@ func WriteProfileToString(p UserProfile) string {
 	pairs = append(pairs, fmt.Sprintf("uid=%d", p.uid))
 	pairs = append(pairs, fmt.Sprintf("role=%s", p.role))
 
-	return url.QueryEscape(strings.Join(pairs, "&"))
+	return strings.Join(pairs, "&")
 }
 
 // ParseStringToProfile parses a url-encoded profile string into a profile object.
