@@ -72,7 +72,7 @@ func TestAesEcbOracleDetectBlockSize(t *testing.T) {
 		wantErr       bool
 	}
 
-	newTestCase := func(name, suffixBase64 string, wantBlockSize int, wantErr bool) (tc testCase) {
+	newTestCase := func(name, suffixBase64 string, wantBlockSize int, addPrefix, wantErr bool) (tc testCase) {
 		var err error
 		tc.name = name
 		suffix, err := base64.StdEncoding.DecodeString(suffixBase64)
@@ -80,7 +80,7 @@ func TestAesEcbOracleDetectBlockSize(t *testing.T) {
 			panic(err)
 		}
 
-		tc.args.oracle, err = ecb.NewAesEcbOracle(suffix, false)
+		tc.args.oracle, err = ecb.NewAesEcbOracle(suffix, addPrefix)
 		if err != nil {
 			panic(err)
 		}
@@ -92,7 +92,8 @@ func TestAesEcbOracleDetectBlockSize(t *testing.T) {
 	}
 
 	tests := []testCase{
-		newTestCase("challenge_12", "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK", 16, false),
+		newTestCase("challenge_12", "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK", 16, false, false),
+		newTestCase("challenge_14", "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK", 16, true, false),
 	}
 
 	for _, tt := range tests {
@@ -120,7 +121,7 @@ func TestAesEcbOracleBreak(t *testing.T) {
 		wantErr       bool
 	}
 
-	newTestCase := func(name, suffixBase64 string, wantErr bool) (tc testCase) {
+	newTestCase := func(name, suffixBase64 string, addPrefix, wantErr bool) (tc testCase) {
 		var err error
 		tc.name = name
 		suffix, err := base64.StdEncoding.DecodeString(suffixBase64)
@@ -128,7 +129,7 @@ func TestAesEcbOracleBreak(t *testing.T) {
 			panic(err)
 		}
 
-		tc.args.oracle, err = ecb.NewAesEcbOracle(suffix, false)
+		tc.args.oracle, err = ecb.NewAesEcbOracle(suffix, addPrefix)
 		if err != nil {
 			panic(err)
 		}
@@ -140,7 +141,8 @@ func TestAesEcbOracleBreak(t *testing.T) {
 	}
 
 	tests := []testCase{
-		newTestCase("challenge_12", "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK", false),
+		newTestCase("challenge_12", "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK", false, false),
+		newTestCase("challenge_14", "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK", true, false),
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
