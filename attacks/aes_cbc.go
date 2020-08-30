@@ -31,6 +31,8 @@ func AesCbcOracleBreak(oracle cbc.AesCbcOracle) (token []byte, err error) {
 	return
 }
 
+// flipChars flips the least significant bit in each occurrence of `;` or `=` in the input string s.
+// Returns the resulting string and a slice containing the indices of the chars that were altered.
 func flipChars(in string) (s string, indices []int) {
 	s = in
 	for {

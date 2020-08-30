@@ -31,6 +31,7 @@ func NewAesCbcOracle() AesCbcOracle {
 
 // Encrypt strips ';' and '=', appends the oracle's prefix and suffix to the
 // plaintext, pads, and encrypts with the oracle's key and iv.
+// This is the "first function" called for in Challenge 16.
 // Cryptopals Set 2, Challenge 16
 // https://cryptopals.com/sets/2/challenges/16
 func (oracle AesCbcOracle) Encrypt(plaintext string) (ciphertext []byte, err error) {
@@ -51,6 +52,7 @@ func (oracle AesCbcOracle) Encrypt(plaintext string) (ciphertext []byte, err err
 }
 
 // Decrypt takes an encrypted user token, and returns true if the admin parameter is true.
+// This is the "second function" callsed for in Challenge 16.
 // Cryptopals Set 2, Challenge 16
 // https://cryptopals.com/sets/2/challenges/16
 func (oracle AesCbcOracle) Decrypt(ciphertext []byte) (isAdmin bool, err error) {
