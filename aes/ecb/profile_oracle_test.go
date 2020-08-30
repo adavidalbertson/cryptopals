@@ -17,7 +17,7 @@ func TestParseStringToProfile(t *testing.T) {
 		wantErrMessage string
 	}{
 		{"challenge_13", args{"email=foo@bar.com&uid=10&role=user"}, UserProfile{"foo@bar.com", 10, "user"}, false, ""},
-		{"invalid_kv", args{"email=foo@bar.com=baz&uid=10&role=user"}, UserProfile{}, true, "Invalid key-value pair: email=foo@bar.com=baz"},
+		{"invalid_query", args{"email=foo@bar.%com&uid=10&role=user"}, UserProfile{}, true, "Invalid query string"},
 		{"invalid_uid", args{"email=foo@bar.com&uid=ten&role=user"}, UserProfile{}, true, "Invalid uid: ten"},
 		{"missing_email", args{"uid=10&role=user"}, UserProfile{}, true, "Incomplete profile: uid=10&role=user"},
 		{"missing_uid", args{"email=foo@bar.com&role=user"}, UserProfile{}, true, "Incomplete profile: email=foo@bar.com&role=user"},

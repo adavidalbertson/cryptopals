@@ -114,33 +114,28 @@ func WriteProfileToString(p UserProfile) string {
 // https://cryptopals.com/sets/2/challenges/13
 func ParseStringToProfile(s string) (UserProfile, error) {
 	out := UserProfile{"", -1, ""}
-	s, err := url.QueryUnescape(s)
+
+	kvmap, err := url.ParseQuery(s)
 	if err != nil {
 		return UserProfile{}, fmt.Errorf("Invalid query string")
 	}
 
-	pairs := strings.Split(s, "&")
+	for key, values := range kvmap {
+		key = strings.TrimSpace(key)
+		value := strings.TrimSpace(values[0])
 
-	for _, pair := range pairs {
-		p := strings.Split(pair, "=")
-		if len(p) != 2 {
-			return UserProfile{}, fmt.Errorf("Invalid key-value pair: %s", pair)
-		}
-
-		p[1] = strings.ToLower(strings.TrimSpace(p[1]))
-
-		switch p[0] {
+		switch key {
 		case "email":
-			out.email = p[1]
+			out.email = value
 		case "uid":
-			uid, err := strconv.Atoi(p[1])
+			uid, err := strconv.Atoi(value)
 			if err != nil {
-				return UserProfile{}, fmt.Errorf("Invalid uid: %s", p[1])
+				return UserProfile{}, fmt.Errorf("Invalid uid: %s", value)
 			}
 
 			out.uid = uid
 		case "role":
-			out.role = p[1]
+			out.role = value
 		}
 	}
 
